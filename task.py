@@ -55,6 +55,7 @@ class PatternLearningTask(QWidget):
         self.trial_count = 0
         self.point_num = self.x_line_num * self.y_line_num
         self.cell_size = 120  # Size of each cell
+        self.start_wait_time = 5000  # 5000 ms
         self.wait_time = 1500  # 1500 ms
         self.width = None
         self.height = None
@@ -72,6 +73,7 @@ class PatternLearningTask(QWidget):
         self.initScreen()
         self.generateIntersectionPoints()
         self.prepareLabel()
+        self.prepareStartLabel()
         return
 
     def initScreen(self) -> None:
@@ -88,21 +90,39 @@ class PatternLearningTask(QWidget):
         file_path = f"{directory_path}/eeg_data.csv"
         self.eeg_handler.stop(file_path)
         super().closeEvent(event)
-
-    def prepareLabel(self) -> None:
-        self.result_label = QLabel(self)
-        self.result_label.setText("Press Any Key")
-        label_width = 200
+    
+    def prepareStartLabel(self) -> None:
+        self.start_label = QLabel(self)
+        self.start_label.setText("Press Any Key")
+        label_width = 200 
         label_height = 60
 
-        self.result_label.setGeometry(
+        self.start_label.setGeometry(
             (self.width - label_width) // 2,
             (self.height - label_height) // 12,
             label_width,
             label_height,
         )
+        self.start_label.setStyleSheet(
+            "font-size: 24px; color: black;"
+        )
+        self.start_label.setAlignment(Qt.AlignCenter)
+        self.start_label.show()
+        return
+
+    def prepareLabel(self) -> None:
+        self.result_label = QLabel(self)
+        label_width = 80
+        label_height = 80
+
+        self.result_label.setGeometry(
+            (self.width - label_width) // 2,
+            (self.height - label_height) // 2,
+            label_width,
+            label_height,
+        )
         self.result_label.setStyleSheet(
-            "font-size: 20px; color: black; background-color: #f0f0f0;"
+            "font-size: 64px; color: black;"
         )
         self.result_label.setAlignment(Qt.AlignCenter)
         self.result_label.show()
@@ -110,15 +130,16 @@ class PatternLearningTask(QWidget):
 
     def startTask(self):
         self.waiting_for_start = False
+        self.start_label.hide()
         self.selectRandomTwoPoints()
         return
 
     def keyPressEvent(self, event: QEvent) -> None:
         if self.waiting_for_start:
             self.eeg_handler.start_stream()
-            self.result_label.setText("Starting...")
-            self.result_label.show()
-            QTimer.singleShot(self.wait_time, self.startTask)
+            self.start_label.setText("Starting...")
+            self.start_label.show()
+            QTimer.singleShot(self.start_wait_time, self.startTask)
             return
 
         if not self.key_event_enabled:
@@ -139,8 +160,10 @@ class PatternLearningTask(QWidget):
 
             self.response_handler.add_correct_response(is_correct)
 
-            status_text = "Correct" if is_correct else "Incorrect"
+            status_text = "○" if is_correct else "×"
 
+            # Center the status text in the middle of the window
+            self.result_label.setAlignment(Qt.AlignCenter)
             self.result_label.setText(status_text)
             self.result_label.show()
             self.trial_count += 1
