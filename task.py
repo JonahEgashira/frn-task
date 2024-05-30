@@ -71,7 +71,8 @@ class PatternLearningTask(QWidget):
         self.setWindowTitle("Pattern Learning Task")
         self.setStyleSheet("background-color: white;")  # Set background color to white
         self.initScreen()
-        self.generateIntersectionPoints()
+        # self.generateIntersectionPoints() # 毎回スコアランダム
+        self.generateFixedIntersectionPoints()
         self.prepareLabel()
         self.prepareStartLabel()
         return
@@ -260,6 +261,35 @@ class PatternLearningTask(QWidget):
         self.points = intersection_points
         print(self.points)
         return
+
+        
+    def generateFixedIntersectionPoints(self) -> None:
+        mid_x = self.width // 2
+        mid_y = self.height // 2
+
+        start_x = int(mid_x - (self.x_line_num - 1) * self.cell_size / 2)
+        start_y = int(mid_y - (self.y_line_num - 1) * self.cell_size / 2)
+
+        # Define a fixed set of scores, generated randomly once
+        fixed_point_scores = [
+            10, 7, 1, 12, 5, 2, 14, 8, 11, 6, 3, 13, 4, 9, 15, 16
+        ]
+
+        intersection_points: List[Point] = []
+        index = 0
+        for i in range(self.x_line_num):
+            for j in range(self.y_line_num):
+                x = start_x + i * self.cell_size
+                y = start_y + j * self.cell_size
+                score = fixed_point_scores[index]  # Use fixed score
+
+                intersection_points.append(Point(index, x, y, score))
+                index += 1
+
+        self.points = intersection_points
+        print(self.points)
+        return
+
 
     def end_task(self):
         QMessageBox.information(self, "Information", "Fin")
